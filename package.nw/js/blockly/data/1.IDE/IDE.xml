@@ -1,0 +1,192 @@
+
+<category name="Переменные" colour="330">
+
+    <block type="ide_variables_declare">
+        <value name="value">
+            <block type="math_number">
+                <field name="NUM">1</field>
+            </block>
+        </value>
+    </block>
+
+    <block type="ide_variables_set">
+        <value name="VAL">
+            <block type="math_number">
+                <field name="NUM">1</field>
+            </block>
+        </value>
+    </block>
+
+    <block type="ide_variables_get"></block>
+
+    <block type="arduino_random"></block>
+    <block type="arduino_random_diap">
+        <value name="START">
+            <block type="math_number">
+                <field name="NUM">0</field>
+            </block>
+        </value>
+        <value name="END">
+            <block type="math_number">
+                <field name="NUM">1000</field>
+            </block>
+        </value>
+    </block>
+
+    <block type="math_number"></block>
+    <block type="text"></block>
+    <block type="logic_null"></block>
+    <block type="logic_boolean"></block>
+    
+</category>
+
+<category name="Массивы" colour="65">
+    <block type="arduino_array_creat">
+        <value name="LINE">
+            <block type="math_number">
+                <field name="NUM">1</field>
+            </block>
+        </value>
+        <value name="ROW">
+            <block type="math_number">
+                <field name="NUM">3</field>
+            </block>
+        </value>
+    </block>
+    <block type="arduino_array_get">
+        <value name="LINE">
+            <block type="math_number">
+                <field name="NUM">1</field>
+            </block>
+        </value>
+        <value name="ROW">
+            <block type="math_number">
+                <field name="NUM">3</field>
+            </block>
+        </value>
+    </block>
+    <block type="arduino_array_set">
+        <value name="LINE">
+            <block type="math_number">
+                <field name="NUM">1</field>
+            </block>
+        </value>
+        <value name="ROW">
+            <block type="math_number">
+                <field name="NUM">3</field>
+            </block>
+        </value>
+    </block>
+</category>
+
+<category name="Действия с данными" colour="220">
+    <block type="logic_negate"></block>
+    <block type="logic_compare"></block>
+    <block type="logic_operation"></block>
+    <block type="bits_operation"></block>
+    <block type="bit_shift">
+        <value name="B">
+            <block type="math_number">
+                <field name="NUM">0</field>
+            </block>
+        </value>
+    </block>
+    <block type="math_arithmetic"></block>
+
+    <block type="math_trig"></block>
+
+
+
+    <block type="arduino_abs">
+    </block>
+    
+    <block type="arduino_map">
+        <value name="NUM">
+            <block type="math_number">
+                <field name="NUM">0</field>
+            </block>
+        </value>
+        <value name="FMIN">
+            <block type="math_number">
+                <field name="NUM">0</field>
+            </block>
+        </value>
+        <value name="FMAX">
+            <block type="math_number">
+                <field name="NUM">0</field>
+            </block>
+        </value>
+        <value name="DMIN">
+            <block type="math_number">
+                <field name="NUM">0</field>
+            </block>
+        </value>
+        <value name="DMAX">
+            <block type="math_number">
+                <field name="NUM">0</field>
+            </block>
+        </value>
+    </block>
+
+    <block type="arduino_constrain">
+        <value name="MIN">
+            <block type="math_number">
+                <field name="NUM">10</field>
+            </block>
+        </value>
+        <value name="MAX">
+            <block type="math_number">
+                <field name="NUM">255</field>
+            </block>
+        </value>
+        <value name="VAL">
+            <block type="math_number">
+                <field name="NUM">34</field>
+            </block>
+        </value>
+    </block>
+
+</category>
+
+<category name="Управление программой" colour="120">
+    <block type="arduino_delay">
+        <value name="DELAY_TIME">
+            <block type="math_number">
+                <field name="NUM">1000</field>
+            </block>
+        </value>
+    </block>
+
+    <block type="controls_if"></block>
+    <block type="controls_switch"></block>
+
+    <block type="ide_break"></block>
+
+    <block type="ide_continue"></block>
+
+    <block type="controls_for">
+        <value name="FROM">
+            <block type="math_number">
+                <field name="NUM">1</field>
+            </block>
+        </value>
+        
+        <value name="TO">
+            <block type="math_number">
+                <field name="NUM">10</field>
+            </block>
+        </value>
+
+        <value name="BY">
+            <block type="math_number">
+                <field name="NUM">1</field>
+            </block>
+        </value>
+    </block>
+    <block type="controls_whileUntil"></block>
+    
+</category>
+	
+
+<category name="Методы" custom="PROCEDURE"colour="290"></category>
+        <sep></sep>

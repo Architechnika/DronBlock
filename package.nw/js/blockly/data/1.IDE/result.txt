@@ -1,0 +1,17 @@
+.\blocks\colour.js
+.\blocks\lists.js
+.\blocks\logic.js
+.\blocks\loops.js
+.\blocks\math.js
+.\blocks\procedures.js
+.\blocks\text.js
+.\blocks\variables.js
+.\ide_ifelse.js
+.\ide_variables_declare_block.js
+.\ide_variables_declare_code.js
+.\ide_variables_get_block.js
+.\ide_variables_get_code.js
+.\ide_variables_set_block.js
+.\ide_variables_set_code.js
+.\state_block.js
+.\state_code.js

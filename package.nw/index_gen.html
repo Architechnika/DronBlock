@@ -1,0 +1,1182 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <!-- <title>dronBlock IDE</title> -->
+        <link type="text/css" rel="stylesheet"  href="style/main.css">
+        <link type="text/css" rel="stylesheet"  href="style/popup.css">
+
+        <script src="js/blockly/blockly_compressed.js"></script>
+        <script src="js/blockly/msg/js/ru.js"></script>
+        <script src="js/align.js"></script>
+
+        <script type="text/javascript" src="js/ace/ace.js"  charset="utf-8"></script>
+
+        <script src="main.js"></script>
+        <script src="spin.js"></script>
+        <script src="servernwjs.js"></script>
+        <script src="serverreq.js"></script>
+
+        <script src="js\blockly\data\union.min.js"></script>
+        <script src="js\blockly\data\1.IDE\ide_binar_logic.js"></script>
+        <script src="js\blockly\data\1.IDE\ide_break_block.js"></script>
+        <script src="js\blockly\data\1.IDE\ide_break_code.js"></script>
+        <script src="js\blockly\data\1.IDE\ide_continue_code.js"></script>
+        <script src="js\blockly\data\1.IDE\ide_continue_block.js"></script>
+        <script src="js\blockly\data\1.IDE\ide_ifelse.js"></script>
+        <script src="js\blockly\data\1.IDE\ide_programm_struct_block_block.js"></script>
+        <script src="js\blockly\data\1.IDE\ide_programm_struct_block_code.js"></script>
+        <script src="js\blockly\data\1.IDE\ide_variables_declare_code.js"></script>
+        <script src="js\blockly\data\1.IDE\ide_variables_declare_block.js"></script>
+        <script src="js\blockly\data\1.IDE\ide_variables_get_block.js"></script>
+        <script src="js\blockly\data\1.IDE\ide_variables_get_code.js"></script>
+        <script src="js\blockly\data\1.IDE\ide_variables_set_block.js"></script>
+        <script src="js\blockly\data\1.IDE\ide_variables_set_code.js"></script>
+        <script src="js\blockly\data\1.IDE\state_block.js"></script>
+        <script src="js\blockly\data\1.IDE\state_code.js"></script>
+        <script src="js\blockly\data\1.IDE\blocks\colour.js"></script>
+        <script src="js\blockly\data\1.IDE\blocks\logic.js"></script>
+        <script src="js\blockly\data\1.IDE\blocks\lists.js"></script>
+        <script src="js\blockly\data\1.IDE\blocks\loops.js"></script>
+        <script src="js\blockly\data\1.IDE\blocks\math.js"></script>
+        <script src="js\blockly\data\1.IDE\blocks\procedures.js"></script>
+        <script src="js\blockly\data\1.IDE\blocks\variables.js"></script>
+        <script src="js\blockly\data\1.IDE\blocks\text.js"></script>
+
+
+        <script src="./serialport/jquery-2.1.4.min.js"></script>
+
+        <script>
+            // метод необхзоидм для отработки ДОЛГОЙ загрузки главного окна программы
+            function init()
+            {
+                // диалог выбора рабочей платформы
+                // не вфбрав платформу - нельзя работать
+                var dialog = document.getElementById("dialog_selectProjectType");
+
+                // определяем событие на закрытие диалога платформы
+                // не позволяем закрыть диалог не выбрав плафторму
+                dialog.addEventListener('close', function() 
+                    {
+                        if(this.returnValue == '')
+                        {
+                            dialog.showModal();
+                        }
+                    });
+
+                // отработка события отключения порта для монитора порта
+                document.getElementById("spmonitor").addEventListener('close', function() 
+                    {
+                        $('#stop-connection').click();
+
+                    });
+
+                MenuAligin();
+
+                // запускаем инициализацию рабочей области в соответствии с выбранной платформой
+                // по сути разница только в элементе toolbox
+                HTML_Init(document.getElementById("dialog_selectProjectType"));
+            }
+
+            function run_compile()
+            {
+                var dialog = document.getElementById("compile_project");
+                //var PROCESS =
+                //var PROCESS_END =
+                // обнуляем диалоговое окно до состояния "по умолчанию"
+                //PROCESS.style="display: none;";
+                //PROCESS_END.style="display: true;";
+                // описываем элементы интерфейса - надо иначе никак
+                document.getElementById('table_process').style="display: none;";
+                document.getElementById('table_process_end').style="display: none;";
+                document.getElementById('compile_state').innerHTML = "Ожидание";
+
+                // аполняем поля списка портов
+                // comport_list
+
+                // открываем окно
+                dialog.showModal();
+
+                // и запускаем обновление списа портов
+                serialport_refresh();
+            }
+
+            // открываем монитор порта
+            function serialportmonitorOpen()
+            {
+                document.getElementById("LOG").innerHTML = '';
+                document.getElementById("spmonitor").showModal();
+            }
+
+            function newProject()
+            {
+                // создание нового проекта
+                if(confirm('Вы уверены, что хотите создать новый проект?\nТекущий проект будет заменён.'))
+                {
+                    // затираем в памяти текущий проект
+                    HTML_clearAutoSave();
+                    // перезагружаем страничку
+                    document.location.href = document.location.href;
+                }
+                
+            }
+
+            function openProject()
+            {
+                HTML_openProject();
+            }
+
+            /* 	
+                Методы, дёграемые HTML менюшкой
+                (заменила меню, предоставляемое операционной системой)
+            */
+            
+            function menuProgramSettings() {
+
+                openOption();
+            }
+
+            function menuBlockFactory() {
+
+                window.open('./factory/factory.html', '_blank')
+            }
+
+            function menuExitProgram() {
+
+                nw.App.quit();
+            } 
+
+        </script>
+    </head>
+
+    <body onload="init()">
+
+        <div id="window">
+
+            <div id="topToolbar" align="left">
+            <!--<div id="topToolbar" style="display: none;" align="center">-->
+                <ul class="topmenu">
+                    <li>
+                        <button class="myButton" id="FILE">
+                            <img src="img/toolbox_newfile.png">
+                        </button>
+                        <ul class="submenu">
+                            <li>
+                                <button class="myButton" onclick="newProject()" id="NEW_PROJECT">
+                                    <img src="img/toolbox_newfile.png">
+                                    Новый проект
+                                </button>						
+                            </li>
+                            <li>
+                                <button class="myButton" onclick="openProject()" id="OPEN_PROJECT">
+                                    <img src="img/toolbox_openfile.png">
+                                    Открыть проект
+                                </button>						
+                            </li>
+                            <li>						
+                                <button class="myButton" onclick="HTML_saveProject()">
+                                    <img src="img/toolbox_savefile.png">
+                                    Сохранить проект
+                                </button>
+                            </li>
+                            <li>						
+                                <button class="myButton" onclick="HTML_saveProject()">
+                                    <img src="img/export.png">
+                                    Экспортировать в blockly
+                                </button>
+                            </li>
+                            <li>						
+                                <button class="myButton" onclick="HTML_saveProject()">
+                                    <img src="img/export.png">
+                                    Экспортировать в arduino
+                                </button>
+                            </li>
+                            <li>						
+                                <button class="myButton" onclick="menuExitProgram()">
+                                    <img src="img/exit.png">
+                                    Выйти
+                                </button>
+                            </li>							
+                        </ul>
+                    </li>
+                    <li>
+                        <button class="myButton">
+                            <img src="img/toolbox_config.png">
+                            Инструменты
+                        </button>
+                        <ul class="submenu">
+                            <li>
+                                <button class="myButton" onclick="run_compile()" >
+                                    <img src="img/toolbox_buildprogramm.png">
+                                    Запрограммировать
+                                </button>
+                            </li>
+                            <li>
+                                <button class="myButton" onclick="serialportmonitorOpen()" >
+                                    <img src="img/serialport.png">
+                                    Монитор порта
+                                </button>					
+                            </li>
+                            <li>
+                                <button class="myButton" onclick="menuProgramSettings()" >
+                                    <img src="img/Setting.png">
+                                    Настройка программы
+                                </button>					
+                            </li>
+                            <li>
+                                <button class="myButton" onclick="menuBlockFactory()" >
+                                    <img src="img/co.png">
+                                    Конструктор блоков
+                                </button>			
+                            </li>
+                            <li>
+                                <button class="myButton" onclick="HTML_refresh()" >
+                                    <img src="img/co.png">
+                                    Refresh
+                                </button>			
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="right">
+                        <button class="myButton" onclick="serialportmonitorOpen()" >
+                            <img src="img/serialport.png">
+                        </button>					
+                    </li>
+                    <li class="right">
+                        <button class="myButton" onclick="openProject()">
+                            <img src="img/toolbox_openfile.png">
+                        </button>						
+                    </li>
+                </ul>
+            </div>
+
+            <div id="blocks_panel">
+                <div id="content_blocks"></div>
+            </div>
+
+            <!--<div id="resize_panel" onclick="html.resize_desctop()"></div>-->
+            <div id="resize_panel"></div>
+
+            <div id="code_panel" style="display: none;">
+                <div id="code_sorce">
+                    <pre id="editor_sorce"></pre>
+                </div>
+            </div>
+        </div>
+        <!-- ДАЛЕЕ СЛЕДУЮТ СЛУЖЕБНЫЕ ПОЛЯ, НЕ ОТОБРАЖАЮЩИЕСЯ НА РАБОЧЕМ СТОЛЕ СТУДИИ -->
+
+        <dialog id="spmonitor">
+            
+            <script src="./serialport/jquery-2.1.4.min.js"></script>
+            <script src="./serialport/underscore.js"></script>
+            <script src="./serialport/backbone.js"></script>
+            <script src="./serialport/main.js"></script>
+            <script src="./serialport/connection.js"></script>
+
+            <script src="./serialport/about.js"></script>
+
+            <div id="top_panel">
+                <button type="button" class="myButton btn-connection">
+                    Настройки порта
+                </button>
+                <button class="myButton" id="connect">Подключить</button>
+                <button class="myButton" id="stop-connection">Отключить</button>
+
+                <input type="checkbox" id="logautoscroll">Автоматическая прокрутка</input>
+            </div>
+
+            <div id="connection" class="popup">
+                <table class="form">
+                    <tbody>
+                        <tr>
+                            <th align="right"><label for="port">Порт:</label></th>
+                            <td>
+                                <select id="port" name="port">
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="right"><label for="bitrate">Скорость:</label></th>
+                            <td>
+                                <select id="bitrate" name="bitrate">
+                                    <option value="9600" selected>9600</option>
+                                    <option value="19200">19200</option>
+                                    <option value="38400">38400</option>
+                                    <option value="57600">57600</option>
+                                    <option value="115200">115200</option>
+                                </select>
+                                бит/с
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="right"><label for="dataBits">Бит в слове:</label></th>
+                            <td>
+                                <select id="dataBits" name="dataBits">
+                                    <option value="seven">7</option>
+                                    <option value="eight" selected>8</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="right"><label for="parityBit">Контроль четности:</label></th>
+                            <td>
+                                <select id="parityBit" name="parityBit">
+                                    <option value="no" selected>Да</option>
+                                    <option value="odd">Odd</option>
+                                    <option value="even">Even</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="right"><label for="stopBits">Стоповые биты:</label></th>
+                            <td>
+                                <select id="stopBits" name="stopBits">
+                                    <option value="one" selected>1</option>
+                                    <option value="two">2</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="forlog" style="overflow: auto; width: 640px; height:480px; top: 34px;">
+                <pre id="LOG"></pre>
+            </div>
+
+
+        </dialog>
+
+        <dialog id="dialog_selectProjectType">
+            <script>
+
+                // выбрали кнопку созадния проекта под Ардуину
+                function arduinoProject()
+                {
+                    var dialog = document.getElementById("dialog_selectProjectType");
+
+                    // меняем параметр последнй выбраной платформы
+                    HTML_lastPlatform = 'toolbox_arduino';
+                    
+                    // инициализируем рабочее поле с учетом платформы
+                    HTML_initMainScreen('toolbox_arduino');
+
+                    // сохраним в память выбранную платформу
+                    HTML_saveOptions();
+
+                    dialog.close('arduino');
+                }
+
+                function artProject()
+                {
+                    var dialog = document.getElementById("dialog_selectProjectType");
+                    
+                    HTML_lastPlatform = 'toolbox_ArT';
+
+                    HTML_initMainScreen('toolbox_ArT');
+
+                    HTML_saveOptions();
+                    
+                    dialog.close('architechnica');
+                }
+
+                function continium()
+                {
+                    var dialog = document.getElementById("dialog_selectProjectType");
+
+                    HTML_initMainScreen(`${HTML_lastPlatform}`);
+
+                    dialog.close('continium');
+                }
+            </script>
+
+            <h3 align="center">Выберите платформу</h3>
+            <table>
+                <tr>
+                    <td>
+                        <button type="button" class="myButton" onclick="arduinoProject()">
+                            <img src="img/Arduino.png" style="vertical-align: middle;width: 128px; height: 128px;">
+                            Набор Arduino
+                        </button>
+                        <button type="button" class="myButton" onclick="artProject()">
+                            <img src="img/dronblock.png" style="vertical-align: middle;width: 128px; height: 128px;">
+                            Набор ДРОН-Блок
+                        </button>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <button type="button" class="myButton" style="width: 100%;" onclick="continium()">
+                            <img src="img/continueum.png" style="vertical-align: middle; height: 64px;">
+                        </button>
+                    </td>
+                </tr>
+            </table>
+            
+        </dialog>
+
+        <dialog id="compile_project" style="width:640; height:480">
+            <script>
+
+                function close_dialog()
+                {
+                    var dialog = document.getElementById("compile_project");
+
+
+                    if(document.getElementById('compile_state').innerHTML.indexOf("проекта") > -1)
+                    {
+                        if(confirm('Идёт процесс компиляции - закрытие окна НЕ РЕКОМЕНДУЕТСЯ\n' +
+                                    'Вы уверены, что хотите продолжить?'))
+                        {
+                            dialog.close();
+                        }
+                    }
+                    else
+                    {
+                        dialog.close();
+                    }
+
+                }
+
+                function do_project()
+                {
+                    var n = document.getElementById("comport_list").options.selectedIndex;
+                    var m = document.getElementById("board_select").options.selectedIndex;
+
+                    if(n < 0)
+                    {
+                        alert('Устройство не обнаружено. Проверьте кабель и/или подключите устройство к компьютеру');
+                        return;
+                    }
+                    var txt = document.getElementById("comport_list").options[n].text;
+                    var port = document.getElementById("comport_list").options[n].value;
+
+                    var board = document.getElementById("board_select").options[m].value;
+
+                    HTML_compileProject(port, board);
+                }
+
+                function serialport_refresh()
+                {
+                    HTML_getPortsList(document.getElementById("comport_list"));
+                }
+
+            </script>
+
+            <h3 align="center">Загрузка программы</h3>
+            <table>
+                <tr>
+                    <td>
+                        <p>Выберите тип платы:</p>
+                    </td>
+                    <td>
+                        <select id="board_select">
+                            <option value="art10">ДРОН-Блок</option>
+                            <option value="nano328">Arduino Nano (328)</option>
+                            <option value="UNO">Arduino UNO</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p> Порт подключения:</p>
+                    </td>
+                    <td>
+                        <select id="comport_list">
+                            <option value="com1">COM 1</option>
+                            <option value="com2">COM 2</option>
+                            <option value="com3">COM 3</option>
+                            <option value="com4">COM 4</option>
+                        </select>
+
+                        <button type="button" class="myButton" id="serialport_refresh" onclick="serialport_refresh()">Обновить</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>Состояние:</p>
+                    </td>
+                    <td>
+                        <p id="compile_state">Ожидание</p>
+                    </td>
+                </tr>
+                <tr id="table_process" style="display: none;">
+                    <td colspan="2" align="middle" >
+                        <img id='compile_image' src="./img/process.gif" align="middle" height="20" width="200"></img>
+                    </td>
+                </tr>
+                <tr id="table_process_end" style="display: none;">
+                    <td colspan="2" align="middle" >
+                        <img id='compile_image_end' src="./img/process_end.png" align="middle" height="64" width="64"></img>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <p id="compile_error"></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button type="button" class="myButton" id="do_compile" onclick="do_project()">Загрузить программу</button>
+                    </td>
+                    <td>
+                        <button type="button" class="myButton" id="compile_close" onclick="close_dialog()">Закрыть</button>
+                    </td>
+                </tr>
+            </table>
+
+        </dialog>
+
+        <dialog id="dialog_options">
+            <h3 align="center">Настройки программы</h3>
+            <p><input type="checkbox" id="toolbox_visible">Отображать панель быстрого доступа</input></p>
+            <p style="display: none;"><input type="checkbox" id="editor_setEdit">Разрешить редактирование программного кода</input></p>
+            <p><input type="checkbox" id="editor_visible">Отображать панель программного кода</input></p>
+            <p align="right">
+                <button type="button" class="myButton" id="options_accept">Применить</button>
+                <button type="button" class="myButton" id="options_cancel">Отменить</button>
+            </p>
+        </dialog>
+
+        <!-- служит для хранения исходного кода для сохранения и компиляции -->
+        <div style="display: none;">
+
+            <input id="openFile" type="file" accept="ardutech project/art,XML/xml"/>
+            <input id="saveFile" type="file" accept="ardutech project/art,XML/xml" nwsaveas='*.art' />
+
+        </div>
+
+        <xml id="toolbox_arduino" style="display: none">
+
+            
+        <category name="Переменные" colour="330">
+
+            <block type="ide_variables_declare">
+                <value name="value">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="ide_variables_set">
+                <value name="VAL">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="ide_variables_get"></block>
+
+            <block type="arduino_random"></block>
+            <block type="arduino_random_diap">
+                <value name="START">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+                <value name="END">
+                    <block type="math_number">
+                        <field name="NUM">1000</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="math_number"></block>
+            <block type="text"></block>
+            <block type="logic_null"></block>
+            <block type="logic_boolean"></block>
+            
+        </category>
+
+        <category name="Массивы" colour="65">
+            <block type="arduino_array_creat">
+                <value name="LINE">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+                <value name="ROW">
+                    <block type="math_number">
+                        <field name="NUM">3</field>
+                    </block>
+                </value>
+            </block>
+            <block type="arduino_array_get">
+                <value name="LINE">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+                <value name="ROW">
+                    <block type="math_number">
+                        <field name="NUM">3</field>
+                    </block>
+                </value>
+            </block>
+            <block type="arduino_array_set">
+                <value name="LINE">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+                <value name="ROW">
+                    <block type="math_number">
+                        <field name="NUM">3</field>
+                    </block>
+                </value>
+            </block>
+        </category>
+
+        <category name="Действия с данными" colour="220">
+            <block type="logic_negate"></block>
+            <block type="logic_compare"></block>
+            <block type="logic_operation"></block>
+            <block type="bits_operation"></block>
+            <block type="bit_shift">
+                <value name="B">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+            </block>
+            <block type="math_arithmetic"></block>
+
+            <block type="math_trig"></block>
+
+
+
+            <block type="arduino_abs">
+            </block>
+            
+            <block type="arduino_map">
+                <value name="NUM">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+                <value name="FMIN">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+                <value name="FMAX">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+                <value name="DMIN">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+                <value name="DMAX">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="arduino_constrain">
+                <value name="MIN">
+                    <block type="math_number">
+                        <field name="NUM">10</field>
+                    </block>
+                </value>
+                <value name="MAX">
+                    <block type="math_number">
+                        <field name="NUM">255</field>
+                    </block>
+                </value>
+                <value name="VAL">
+                    <block type="math_number">
+                        <field name="NUM">34</field>
+                    </block>
+                </value>
+            </block>
+
+        </category>
+
+        <category name="Управление программой" colour="120">
+            <block type="arduino_delay">
+                <value name="DELAY_TIME">
+                    <block type="math_number">
+                        <field name="NUM">1000</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="controls_if"></block>
+            <block type="controls_switch"></block>
+
+            <block type="ide_break"></block>
+
+            <block type="ide_continue"></block>
+
+            <block type="controls_for">
+                <value name="FROM">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+                
+                <value name="TO">
+                    <block type="math_number">
+                        <field name="NUM">10</field>
+                    </block>
+                </value>
+
+                <value name="BY">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+            </block>
+            <block type="controls_whileUntil"></block>
+            
+        </category>
+
+
+        <category name="Методы" custom="PROCEDURE"colour="290"></category>
+            <sep></sep>
+    
+
+
+        <category name="Arduino" colour="180">
+
+            <block type="main_programm_block"></block>
+
+            <block type="arduino_tone">
+                <value name="freq">
+                    <block type="math_number">
+                        <field name="NUM">675</field>
+                    </block>
+                </value>
+                <value name="duration">
+                    <block type="math_number">
+                        <field name="NUM">500</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="arduino_shiftout">
+                <value name="DATA">
+                    <block type="math_number">
+                        <field name="NUM">200</field>
+                    </block>
+                </value>
+            </block>
+            <block type="arduinno_shftin">
+            </block>
+
+            <block type="arduino_millis">
+            </block>
+
+            <block type="arduino_anytext">
+            </block>
+        </category>
+
+        <category name="Порты ввода вывода" colour="170">
+            <block type="arduino_digital_write"></block>
+            <block type="arduino_digital_read"></block>
+            
+            <block type="arduino_analog_write">
+                <value name="NUM">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="arduino_analog_read"></block>
+        </category>
+
+        <category name="Последовательный порт" colour="160">
+            <block type="arduino_serial_settimeout">
+                <value name="TIMEOUT">
+                    <block type="math_number">
+                        <field name="NUM">10</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="arduino_serial_print">
+                <value name="CONTENT">
+                    <block type="text">
+                        <field name="TEXT">Привет мир</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="arduino_serial_write">
+                <value name="CONTENT">
+                    <block type="math_number">
+                        <field name="NUM">121</field>
+                    </block>
+                </value>
+                <value name="LEN">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="arduino_serial_available"></block>
+        </category>
+
+        <category name="Универсальные модули" colour="300">
+            <block type="arduino_liquidcrystal_init">
+                <value name="columns">
+                    <block type="math_number">
+                        <field name="NUM">16</field>
+                    </block>
+                </value>
+                <value name="rows">
+                    <block type="math_number">
+                        <field name="NUM">2</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="arduino_liquidcrystal_print">
+                <value name="colum">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+                <value name="row">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+                <value name="text">
+                    <block type="text">
+                        <field name="TEXT">Привет мир</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="arduino_motor_driver">
+                <value name="speed">
+                    <block type="math_number">
+                        <field name="NUM">100</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="arduino_linesensor">
+                <value name="DELAY">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="arduino_ultrasonic"></block>
+        </category>
+
+        <category name="Модули серии KY-xxx" colour="350">
+
+            <block type="ky001_tempsensor_ds18b20"></block>
+            <block type="ky002_vibration_switch"></block>
+            <block type="ky003_hall_magnetic"></block>
+
+            <block type="ky004_keyswitch">
+                <value name="time">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="ky005_iremissionsensor"></block>
+
+            <block type="ky006_passive_buzzer">
+                <value name="delay">
+                    <block type="math_number">
+                        <field name="NUM">500</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="ky009_3fullcolorled"></block>
+
+            <block type="ky010_opticalbroke">
+                <value name="TIME">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="ky012_active_buzzer">
+                <value name="TIME">
+                    <block type="math_number">
+                        <field name="NUM">500</field>
+                    </block>
+                </value>
+            </block>
+            
+        </category>
+
+
+
+        </xml>
+
+        <xml id="toolbox_ArT" style="display: none">
+        
+        
+        <category name="Переменные" colour="330">
+
+            <block type="ide_variables_declare">
+                <value name="value">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="ide_variables_set">
+                <value name="VAL">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="ide_variables_get"></block>
+
+            <block type="arduino_random"></block>
+            <block type="arduino_random_diap">
+                <value name="START">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+                <value name="END">
+                    <block type="math_number">
+                        <field name="NUM">1000</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="math_number"></block>
+            <block type="text"></block>
+            <block type="logic_null"></block>
+            <block type="logic_boolean"></block>
+            
+        </category>
+
+        <category name="Массивы" colour="65">
+            <block type="arduino_array_creat">
+                <value name="LINE">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+                <value name="ROW">
+                    <block type="math_number">
+                        <field name="NUM">3</field>
+                    </block>
+                </value>
+            </block>
+            <block type="arduino_array_get">
+                <value name="LINE">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+                <value name="ROW">
+                    <block type="math_number">
+                        <field name="NUM">3</field>
+                    </block>
+                </value>
+            </block>
+            <block type="arduino_array_set">
+                <value name="LINE">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+                <value name="ROW">
+                    <block type="math_number">
+                        <field name="NUM">3</field>
+                    </block>
+                </value>
+            </block>
+        </category>
+
+        <category name="Действия с данными" colour="220">
+            <block type="logic_negate"></block>
+            <block type="logic_compare"></block>
+            <block type="logic_operation"></block>
+            <block type="bits_operation"></block>
+            <block type="bit_shift">
+                <value name="B">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+            </block>
+            <block type="math_arithmetic"></block>
+
+            <block type="math_trig"></block>
+
+
+
+            <block type="arduino_abs">
+            </block>
+            
+            <block type="arduino_map">
+                <value name="NUM">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+                <value name="FMIN">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+                <value name="FMAX">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+                <value name="DMIN">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+                <value name="DMAX">
+                    <block type="math_number">
+                        <field name="NUM">0</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="arduino_constrain">
+                <value name="MIN">
+                    <block type="math_number">
+                        <field name="NUM">10</field>
+                    </block>
+                </value>
+                <value name="MAX">
+                    <block type="math_number">
+                        <field name="NUM">255</field>
+                    </block>
+                </value>
+                <value name="VAL">
+                    <block type="math_number">
+                        <field name="NUM">34</field>
+                    </block>
+                </value>
+            </block>
+
+        </category>
+
+        <category name="Управление программой" colour="120">
+            <block type="arduino_delay">
+                <value name="DELAY_TIME">
+                    <block type="math_number">
+                        <field name="NUM">1000</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="controls_if"></block>
+            <block type="controls_switch"></block>
+
+            <block type="ide_break"></block>
+
+            <block type="ide_continue"></block>
+
+            <block type="controls_for">
+                <value name="FROM">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+                
+                <value name="TO">
+                    <block type="math_number">
+                        <field name="NUM">10</field>
+                    </block>
+                </value>
+
+                <value name="BY">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+            </block>
+            <block type="controls_whileUntil"></block>
+            
+        </category>
+        
+
+        <category name="Методы" custom="PROCEDURE"colour="290"></category>
+                <sep></sep>
+
+                
+            <category name="ДРОН-Блок" colour="20">
+            <block type="artboard"></block>
+
+            <block type="art_system_led"></block>
+
+            <block type="arduino_serial_print">
+                <value name="CONTENT">
+                    <block type="text">
+                        <field name="TEXT">Привет мир</field>
+                    </block>
+                </value>
+            </block>
+            
+            <block type="artmotordriver">
+                <value name="SPD">
+                    <block type="math_number">
+                        <field name="NUM">100</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="artsoundsence">
+            </block>
+
+            <block type="artirsence">
+                <value name="cnt">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="art_sharpir">
+                <value name="cnt">
+                    <block type="math_number">
+                        <field name="NUM">1</field>
+                    </block>
+                </value>
+            </block>
+
+            <block type="artservo">
+                <value name="angle">
+                    <block type="math_number">
+                        <field name="NUM">20</field>
+                    </block>
+                </value>
+            </block>
+
+
+        </category>
+
+
+            </xml>
+        
+            <script src="js\lang.js"></script>
+
+    </body>
+
+</html>

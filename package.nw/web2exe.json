@@ -1,0 +1,20 @@
+{
+    "webexe_settings": {
+        "blacklist": "",
+        "custom_script": "",
+        "download_dir": "C:\\Users\\deltauser\\YandexDisk\\Soft\\node\\nw_sdk",
+        "export_dir": "C:\\Users\\deltauser\\YandexDisk\\My side projects\\\u041e\u041e\u041e \u0410\u0440\u0422\u0435\u0445\\\u0414\u0435\u044f\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c\\\u0420\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u0430\\DRON_SOFTWARE\\ArchitechnicIDE\\Builds",
+        "force_download": false,
+        "linux-x32": false,
+        "linux-x64": false,
+        "mac-x64": false,
+        "nw_compression_level": 0,
+        "nw_version": "0.21.4",
+        "output_pattern": "",
+        "sdk_build": false,
+        "uncompressed_folder": true,
+        "whitelist": "",
+        "windows-x32": false,
+        "windows-x64": true
+    }
+}

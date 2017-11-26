@@ -1,0 +1,50 @@
+<category name="ДРОН-Блок" colour="20">
+    <block type="artboard"></block>
+
+    <block type="art_system_led"></block>
+
+    <block type="arduino_serial_print">
+        <value name="CONTENT">
+            <block type="text">
+                <field name="TEXT">Привет мир</field>
+            </block>
+        </value>
+    </block>
+    
+    <block type="artmotordriver">
+        <value name="SPD">
+            <block type="math_number">
+                <field name="NUM">100</field>
+            </block>
+        </value>
+    </block>
+
+    <block type="artsoundsence">
+    </block>
+
+    <block type="artirsence">
+        <value name="cnt">
+            <block type="math_number">
+                <field name="NUM">1</field>
+            </block>
+        </value>
+    </block>
+
+    <block type="art_sharpir">
+        <value name="cnt">
+            <block type="math_number">
+                <field name="NUM">1</field>
+            </block>
+        </value>
+    </block>
+
+    <block type="artservo">
+        <value name="angle">
+            <block type="math_number">
+                <field name="NUM">20</field>
+            </block>
+        </value>
+    </block>
+
+
+</category>
