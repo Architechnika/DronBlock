@@ -250,3 +250,44 @@ Time: 13044ms
 union.min.js  86.2 kB       0  [emitted]  main
    [0] multi main 28 bytes {0} [built]
    [1] ./union.js 132 kB {0} [built]
+Hash: cbd6c049aaffdf18f730
+Version: webpack 3.10.0
+Time: 8792ms
+       Asset       Size  Chunks             Chunk Names
+union.min.js  842 bytes       0  [emitted]  main
+   [0] multi ./union.js 28 bytes {0} [built]
+
+ERROR in multi ./union.js
+Module not found: Error: Can't resolve 'C:\Users\work\YandexDisk\My side projects\ООО АрТех\Деятельность\Разработка\DRON_SOFTWARE\DronBlock\package.nw\js\blockly\data\union.js' in 'C:\Users\work\YandexDisk\My side projects\ООО АрТех\Деятельность\Разработка\DRON_SOFTWARE\DronBlock\package.nw\js\blockly\data'
+ @ multi ./union.js
+Hash: cbd6c049aaffdf18f730
+Version: webpack 3.10.0
+Time: 8031ms
+       Asset       Size  Chunks             Chunk Names
+union.min.js  842 bytes       0  [emitted]  main
+   [0] multi ./union.js 28 bytes {0} [built]
+
+ERROR in multi ./union.js
+Module not found: Error: Can't resolve 'C:\Users\work\YandexDisk\My side projects\ООО АрТех\Деятельность\Разработка\DRON_SOFTWARE\DronBlock\package.nw\js\blockly\data\union.js' in 'C:\Users\work\YandexDisk\My side projects\ООО АрТех\Деятельность\Разработка\DRON_SOFTWARE\DronBlock\package.nw\js\blockly\data'
+ @ multi ./union.js
+Hash: 245eaf7ffd54a92a05c6
+Version: webpack 3.10.0
+Time: 12142ms
+       Asset     Size  Chunks             Chunk Names
+union.min.js  87.3 kB       0  [emitted]  main
+   [0] multi ./union.js 28 bytes {0} [built]
+   [1] ./union.js 133 kB {0} [built]
+Hash: 0de30e2788e819f22439
+Version: webpack 3.10.0
+Time: 13047ms
+       Asset     Size  Chunks             Chunk Names
+union.min.js  86.3 kB       0  [emitted]  main
+   [0] multi ./union.js 28 bytes {0} [built]
+   [1] ./union.js 132 kB {0} [built]
+Hash: d666daceb0d37ac1dc8b
+Version: webpack 1.14.0
+Time: 8581ms
+       Asset     Size  Chunks             Chunk Names
+union.min.js  86.2 kB       0  [emitted]  main
+   [0] multi main 28 bytes {0} [built]
+   [1] ./union.js 132 kB {0} [built]
