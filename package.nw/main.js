@@ -1,4 +1,4 @@
-/* основной файл методов взаимодействия HTML и системы 
+/* основной файл методов взаимодействия HTML и системы
 
 ИЗМЕНЕНИЯ:
 
@@ -51,7 +51,12 @@ var HTML_lastPlatform = 'toolbox_ArT';
 var JSON_parce = {};
 var JSON_stringify = {};
 
-
+/* Глобальные переменные */
+var globalSelectedPlatform; 	// Нужно для определения походящего типа платы
+var globalPlatformList = {}; 	// Список всех поддерживаемых платформ
+var globalDevMode = "blockly";	// Текущий режим разработки.
+								// "blockly"	- графический. Создание программы из блоков
+								// "code" 		- редактирование кода. Блоки убраны
 
 
 var OPTIONS =   {
@@ -61,7 +66,8 @@ var OPTIONS =   {
                     {
                         canEdit : false,
                         visible : true
-                    }
+                    },
+                    lastPort : 'none'
                 };
 
 var initialValue = "<xml xmlns=\"http://www.w3.org/1999/xhtml\"><block type=\"artboard\" id=\"9\" x=\"38\" y=\"13\"><field name=\"artboard\">0</field></block></xml>";
@@ -69,14 +75,10 @@ var initialValue = "<xml xmlns=\"http://www.w3.org/1999/xhtml\"><block type=\"ar
 var ns4 = {};
 var ie4 = {};
 
+
+
 var HTML_Init = function(dialog)
 {
-    //Control.readOptions();
-    /*var code_sorce = document.getElementById("code_sorce");
-    var resize_panel = document.getElementById("resize_panel");
-    var code_panel = document.getElementById("code_panel");
-    var container = document.getElementById('blocks_panel');
-    var content_blocks = document.getElementById('content_blocks');*/
     var ns4 = (document.layers) ? true : false;
     var ie4 = (document.all) ? true : false;
 
@@ -84,7 +86,8 @@ var HTML_Init = function(dialog)
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // ------------------------------------------------
     if(NWJS !== undefined || NWJS == true)
-    {// значит работаем под NWJS
+    {
+		// значит работаем под NWJS
         var optionsOK = false;
 
         Menu = require('./js/nwjs/menuhelper');
@@ -112,11 +115,11 @@ var HTML_Init = function(dialog)
             Control.compileProject(port, BOARD, editor.getValue());
         };
 
-        HTML_getPortsList       = function(html_object)
+        HTML_getPortsList       = function(html_object, needRestorePort)
         {
             Control.getPortsList((ports, html_object) =>
                 {
-                    var select =  `<option value="com0">COM 0</option>`;
+                    var select =  `<option value="com0">COM0</option>`;
                     ports.forEach((port) =>
                         {
                             console.log('PORT NAME : ' + port.path);
@@ -124,6 +127,10 @@ var HTML_Init = function(dialog)
                         });
 
                     html_object.innerHTML = select;
+
+                    // Вспоминаем последний использовавшийся порт
+                    if(needRestorePort == true)
+						compileDialogRestorePort();
 
                 }, html_object);
         };
@@ -138,11 +145,11 @@ var HTML_Init = function(dialog)
         // инициализируем меню
         /*console.log('Создаю меню для NWJS');
         Menu.createMenu(
-                            nw, 
-                            Control, 
-                            console, 
+                            nw,
+                            Control,
+                            console,
                             openOption,
-                            run_compile, 
+                            run_compile,
                             document.location.href,
                             serialportmonitorOpen);
         console.log('OK');
@@ -191,12 +198,20 @@ var HTML_Init = function(dialog)
         document.getElementById('topToolbar').style = "display: true;";
     }
 
-        // отрабаытываем настройки сиситемы
+    // Инициализация и настройка редактора кода
     console.log('Start init Editor');
+
+    ace.require("ace/ext/language_tools");
     editor = ace.edit("editor_sorce");
+
 
     editor.setTheme("js/ace/theme/clouds");
     editor.session.setMode("js/ace/mode/c_cpp");
+    editor.enableEmmet = true;
+    editor.spellcheck = true;
+    editor.enableSnippets = true;
+    editor.enableBasicAutocompletion = true;
+    editor.enableLiveAutocompletion = true;
 
     console.log('End init Editor');
 
@@ -258,16 +273,10 @@ var HTML_initMainScreen = function(typeProject)
                 setXML(initialValue);
             } break;
         }
-    }                                   
-/*
-    if(getXML().length < 60)
-    {
-        workspaceClear();
-        setXML(initialValue);
-    }*/
+    }
 
     // добавляем событие изменения размера окна
-    window.addEventListener('resize', onresize, true);
+    window.addEventListener('resize', redrawAll, true);
 
     console.log('End init Blockly');
 
@@ -286,8 +295,7 @@ var HTML_initMainScreen = function(typeProject)
     mouse_upButton = "null";
     mouse_downButton = "null";
 
-    onresize();
-    desctopRefresh();
+    redrawAll();
 };
 
 var toolboxstate = true;
@@ -353,8 +361,8 @@ var HTML_saveOptions = function()
     window.localStorage['lastPlatform'] = HTML_lastPlatform;
 };
 
-// метод перерисовки поля схемы
-var onresize = function()
+// Метод перерисовки всех областей студии
+var redrawAll = function()
 {
     var toolbox = document.getElementById("topToolbar");
     var container = document.getElementById('blocks_panel');
@@ -379,9 +387,6 @@ var onresize = function()
     toolbox.style.left = '0px';
     toolbox.style.width = window_width + 'px';
     toolbox.style.height = toolH + 'px';
-
-//    container.style.top = toolboxHeight + 'px';
-//    container.style.left = '0px';
     container.style.width = blocks_width + 'px';
     container.style.height = window_heght - toolH + 'px';
 
@@ -397,10 +402,6 @@ var onresize = function()
     code_panel.style.left = blocks_width + 'px';
     code_panel.style.top = toolH + 'px';
 
-    console.log('Заново ставим высоту поля текста, чтобы отработало во всех браузерах');
-//    code_sorce.style.height = '100%';
-//    code_sorce.style.height = window_heght - toolboxHeight + 'px';
-
     console.log('OK');
 
     console.log('Resize panel replace');
@@ -409,10 +410,12 @@ var onresize = function()
 
     console.log('OK');
 
-    console.log('Refresh desctop');
+    console.log('Refresh desktop');
     editor.resize();
-    desctopRefresh();
     console.log('Refresh OK');
+
+    // Перерисовать содержимое Blockly
+    Blockly.svgResize(workspace);
 };
 
 // событие НАЖАТИЯ кнопки мыши
@@ -463,7 +466,7 @@ var mouse_up = function(event)
     }
 };
 
-// метод получения координат мыши в окне программы4
+// метод получения координат мыши в окне программы
 var mouse_move = function(event)
 {
     var window_width = window.innerWidth;
@@ -488,7 +491,7 @@ var mouse_move = function(event)
         {
             blockly_width = mouse_x / window_width * 100;
             blockly_width = blockly_width < 30 ? 30 : blockly_width;
-            onresize();
+            redrawAll();
             console.log(blockly_width);
         }
     }
@@ -507,7 +510,6 @@ var renderCodeAndXML = function(event)
     setCode(getCode());
     console.log('OK');
 };
-
 
 // очистка рабочего поля
 var workspaceClear = function()
@@ -563,21 +565,12 @@ var setCode = function(value)
     }
 };
 
-var desctopRefresh = function()
-{
-    // перерисовываем схему с новыми размерами
-    Blockly.svgResize(workspace);
-};
-
-
 var openOption = function ()
 {
     var dialog = document.getElementById("dialog_options");
     var toolbox_visible = document.getElementById('toolbox_visible');
     var editor_setEdit = document.getElementById('editor_setEdit');
     var editor_visible = document.getElementById('editor_visible');
-
-    console.log('Open Options Dialog');
 
     console.log('Проверка парамтеров');
     checkOptions();
@@ -590,6 +583,7 @@ var openOption = function ()
     {
         dialog.close();
     };
+
     document.getElementById('options_accept').onclick = function()
     {
         var dialog = document.getElementById("dialog_options");
@@ -606,7 +600,7 @@ var openOption = function ()
         doOptions();
         HTML_saveOptions();
 
-        console.log('End options eccept and close dialog');
+        console.log('End options accept and close dialog');
 
         dialog.close();
     };
@@ -658,6 +652,16 @@ var checkOptions = function()
         OPTIONS.editor.visible = true;
     }
 
+    try
+    {
+        OPTIONS.lastPort = OPTIONS.lastPort;
+    }
+    catch (e)
+    {
+        console.log(e);
+        OPTIONS.lastPort = "none";
+    }
+
     console.log('End checking options');
 };
 
@@ -672,8 +676,71 @@ var doOptions = function()
 
     editor.setReadOnly(!OPTIONS.editor.canEdit);
 
-    onresize();
-
-//    OPTIONS.editor.canEdit = editor_setEdit.checked;
-//    OPTIONS.editor.visible = editor_visible.checked;
+    redrawAll();
 };
+
+/*	Переключение режима разработки	*/
+var blocklyWidthPrev;
+function switchDevMode()
+{
+	var codeWindow = document.getElementById("code_sorce");
+	var blocksWindow = document.getElementById("blocks_panel");
+
+	/* Переходим в режим "только код" */
+	if(globalDevMode == "blockly")
+	{
+		globalDevMode = "code";
+
+		// Сохраняем текущее значение ширины редактора блоков
+		// и убираем редактор (ширина = 0)
+		blocklyWidthPrev = blockly_width;
+		blockly_width = 0;
+		redrawAll();
+
+		// Разрешаем редактирование в Ace Editor
+		editor.setOptions({
+			readOnly: false
+		})
+
+	}
+
+	/* Режим с блоками */
+	else if(globalDevMode == "code")
+	{
+		globalDevMode = "blockly";
+
+		// Восстанавливаем значение ширины редактора блоков
+		// Теперь он снова видимый
+		blockly_width = blocklyWidthPrev;
+		redrawAll();
+
+		// Запрещаем редактирование в Ace Editor
+		editor.setOptions({
+			readOnly: true
+		})
+	}
+	else
+		return;
+}
+
+/* Запомнить последний ипользованный для прошивки порт */
+function compileDialogRememberPort()
+{
+	// Запомнить выбранный порт
+	// Использовать его по умолчанию в следующий раз
+	OPTIONS.lastPort = document.getElementById("comport_list").value;
+
+	// Сохранить настройки программы, в т.ч. и порт
+	HTML_saveOptions();
+}
+
+/* Восстановить последний ипользованный для прошивки порт */
+function compileDialogRestorePort()
+{
+	if(OPTIONS.lastPort != 'none')
+	{
+		document.getElementById("comport_list").value = OPTIONS.lastPort;
+	}
+	else
+		console.log("compileDialogRestorePort(): OPTIONS.lastPort is none");
+}

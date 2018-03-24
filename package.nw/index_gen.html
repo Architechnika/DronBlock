@@ -11,6 +11,7 @@
         <script src="js/align.js"></script>
 
         <script type="text/javascript" src="js/ace/ace.js"  charset="utf-8"></script>
+        <script src="js/ace/ext-language_tools.js"></script>
 
         <script src="main.js"></script>
         <script src="spin.js"></script>
@@ -46,12 +47,6 @@
         <script src="./serialport/jquery-2.1.4.min.js"></script>
 
         <script>		
-			/* Глобальные переменные */
-			var globalSelectedPlatform; 	// Нужно для определения походящего типа платы
-			var globalPlatformList = {}; 	// Список всех поддерживаемых платформ
-			var globalDevMode = "blockly";	// Текущий режим разработки.
-											// "blockly"	- графический. Создание программы из блоков
-											// "code" 		- редактоирование кода. Блоки убраны
 			
 			
 			/**********************************************************/
@@ -87,7 +82,7 @@
             }
             /**********************************************************/
 
-            function run_compile()
+            function menuCompile()
             {
                 var dialog = document.getElementById("compile_project");
 
@@ -98,8 +93,10 @@
                 // открываем окно
                 dialog.showModal();
 
-                // и запускаем обновление списа портов
-                serialport_refresh();
+                // Запускаем обновление списа портов
+                // Вспоминаем последний использовавшийся
+                serialport_refresh(true);
+           
             }
 
             // открываем монитор порта
@@ -109,7 +106,7 @@
                 document.getElementById("spmonitor").showModal();
             }
 
-            function newProject()
+            function menuNewProject()
             {
                 // создание нового проекта
                 if(confirm('Вы уверены, что хотите создать новый проект?\nТекущий проект будет заменён.'))
@@ -119,15 +116,12 @@
                     // перезагружаем страничку
                     document.location.href = document.location.href;
                 }
-                
             }
 
-            function openProject()
+            function menuOpenProject()
             {
                 HTML_openProject();
             }
-
-
 
             /* 	Методы, дёграемые HTML менюшкой  */   
             function menuProgramSettings()
@@ -145,38 +139,7 @@
                 nw.App.quit();
             }
             
-            /*	Переключение режима разработки	*/
-            var codeWindowPrevWidth;
-            var blocksWindowPrevWidth;
-            function switchDevMode()
-            {
-				var codeWindow = document.getElementById("code_sorce");
-				var blocksWindow = document.getElementById("blocks_panel");
-				
-				if(globalDevMode == "blockly")
-				{
-					globalDevMode = "code";
-					
-					codeWindowPrevWidth = codeWindow.style.width;
-					blocksWindowPrevWidth = blocksWindow.style.width;
-					
-					blocksWindow.style.width = '0px';
-					codeWindow.style.width = '100%';
-					//blocksWindow.style.display = "none";
-					
-				}
-				else if(globalDevMode == "code")
-				{
-					globalDevMode = "blockly";
-					
-					blocksWindow.style.width = blocksWindowPrevWidth;
-					//blocksWindow.style.display = "block";
-				}
-				else
-				{
-					console.log("Problem with mode switching");
-				}
-			}
+            
 
         </script>
     </head>
@@ -194,13 +157,13 @@
                         </button>
                         <ul class="submenu">
                             <li>
-                                <button class="myButton" onclick="newProject()" id="NEW_PROJECT">
+                                <button class="myButton" onclick="menuNewProject()" id="NEW_PROJECT">
                                     <img src="img/toolbox_newfile.png">
                                     Новый проект
                                 </button>						
                             </li>
                             <li>
-                                <button class="myButton" onclick="openProject()" id="OPEN_PROJECT">
+                                <button class="myButton" onclick="menuOpenProject()" id="OPEN_PROJECT">
                                     <img src="img/toolbox_openfile.png">
                                     Открыть проект
                                 </button>						
@@ -238,7 +201,7 @@
                         </button>
                         <ul class="submenu">
                             <li>
-                                <button class="myButton" onclick="run_compile()" >
+                                <button class="myButton" onclick="menuCompile()" >
                                     <img src="img/toolbox_buildprogramm.png">
                                     Запрограммировать
                                 </button>
@@ -275,7 +238,7 @@
                         </button>					
                     </li>
                     <li class="right">
-                        <button class="myButton" onclick="openProject()">
+                        <button class="myButton" onclick="menuOpenProject()">
                             <img src="img/toolbox_openfile.png">
                         </button>						
                     </li>
@@ -433,12 +396,9 @@
                     dialog.close('architechnica');
                 }
                 
+                /* Выибраем нужную среду для выбранной платформы */
                 function buttonPlatofmSelectContinue()
-                {
-					/*	Читаем значение из списка и выбираем
-						соответствующую платформу
-					*/
-					
+                {				
 					var selectedPlatform = document.getElementById("listPlatformSelect").value;
 						
 					if(selectedPlatform == "Arduino")
@@ -455,8 +415,8 @@
 
             </script>
 
-			<h2 align="center">Добро пожаловать!</h3>
-            <h3 align="center">Выберите платформу</h3>
+			<h2 align="center" style="font-family: sans-serif;">Добро пожаловать!</h3>
+            <h3 align="center" style="font-family: sans-serif;">Выберите платформу</h3>
             
             <table>
                 <tr>
@@ -491,9 +451,11 @@
             
         </dialog>
 
+
+        <!-- Загрузка программы на плату -->
         <dialog id="compile_project" style="width:640; height:480">
             <script>
-
+				
                 function close_dialog()
                 {
                     var dialog = document.getElementById("compile_project");
@@ -516,6 +478,9 @@
 
                 function do_project()
                 {
+					// Запомнить порт, под которым прошиваем
+					compileDialogRememberPort();	
+					
                     var n = document.getElementById("comport_list").options.selectedIndex;
                     var m = document.getElementById("board_select").options.selectedIndex;
 
@@ -532,13 +497,13 @@
                     HTML_compileProject(port, board);
                 }
 
-                function serialport_refresh()
+                function serialport_refresh(needRestorePort)
                 {
-                    HTML_getPortsList(document.getElementById("comport_list"));
+                    HTML_getPortsList(document.getElementById("comport_list"), needRestorePort);
                 }
 
             </script>
-
+            
             <h3 align="center">Загрузка программы</h3>
             <table>
                 <tr>
@@ -565,7 +530,7 @@
                             <option value="com4">COM 4</option>
                         </select>
 
-                        <button type="button" class="myButton" id="serialport_refresh" onclick="serialport_refresh()">Обновить</button>
+                        <button type="button" class="myButton" id="serialport_refresh" onclick="serialport_refresh(false)">Обновить</button>
                     </td>
                 </tr>
                 <tr>
@@ -623,6 +588,7 @@
         </div>
 
         <xml id="toolbox_arduino" style="display: none">
+
             
         <category name="Переменные" colour="330">
 
