@@ -23,14 +23,14 @@
     
     <script>
         
-        /*function init(){
+        function init(){
             
             // инициализация текстового редактора
             var editor = ace.edit("languagePre");
             editor.setTheme("ace/theme/clouds");
             editor.session.setMode("ace/mode/js");
             editor.setReadOnly(false);  // false to make it editable
-        }*/
+        }
     
     </script>
     <style>
@@ -74,10 +74,12 @@
         </table>
       </td>
     </tr>
+    
     <!-- Second row has the rest of the content in two columns. -->
     <tr>
       <td width="50%" height="95%">
         <!-- Left column table contains the define and generate workspaces. -->
+        
         <table>
           <tr>
             <td height="4%" class="bottom_align">
@@ -91,29 +93,17 @@
             </td>
           </tr>
         </table>
+        
       </td>
       <td width="50%" height="95%">
         <!-- Right column table contains the generated code and preview. -->
+        
         <table>
+		
+
+          
           <tr>
-            <td height="4%" class="bottom_align">
-              <h3>
-                <select id="format">
-                  <option value="JavaScript">JavaScript</option>
-                  <!--<option value="JSON">JSON</option>-->
-                  <option value="Manual">Manual edit...</option>
-                </select>
-              </h3>
-            </td>
-          </tr>
-          <tr>
-            <td height="34%">
-              <pre id="languagePre"></pre>
-              <textarea id="languageTA"></textarea>
-            </td>
-          </tr>
-          <tr>
-            <td height="4%" class="bottom_align">
+            <td height="38%" class="bottom_align">
               <h3>Preview:
                 <select id="direction">
                    <option value="ltr">LTR</option>
@@ -122,22 +112,47 @@
               </h3>
             </td>
           </tr>
+          
           <tr>
-            <td height="20%">
+            <td height="0%">
               <div id="preview"></div>
             </td>
           </tr>
+          
           <tr>
             <td height="4%" class="bottom_align">
-              <h3>Generator code for Arduino:</h3>
+              <h3>Code generator for Arduino:</h3>
             </td>
           </tr>
+          
           <tr>
             <td height="34%">
               <pre id="generatorPre"></pre>
             </td>
           </tr>
+          
+          
+           <tr>
+            <td height="4%" class="bottom_align">
+              <h3>
+                <select id="format" hidden>
+                  <option value="JavaScript">JavaScript</option>
+                  <!--<option value="JSON">JSON</option>-->
+                  <option value="Manual">Manual edit...</option>
+                </select>
+              </h3>
+            </td>
+          </tr>
+                
+          <tr hidden>
+            <td height="0%">
+              <pre id="languagePre"></pre>
+              <textarea id="languageTA"></textarea>
+            </td>
+          </tr>
+          
         </table>
+        
       </td>
     </tr>
   </table>
