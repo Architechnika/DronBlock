@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <!-- <title>dronBlock IDE</title> -->
+
         <link type="text/css" rel="stylesheet"  href="style/main.css">
         <link type="text/css" rel="stylesheet"  href="style/popup.css">
 
@@ -43,15 +43,23 @@
         <script src="js\blockly\data\1.IDE\blocks\variables.js"></script>
         <script src="js\blockly\data\1.IDE\blocks\text.js"></script>
 
-
         <script src="./serialport/jquery-2.1.4.min.js"></script>
 
-        <script>
-            // метод необхзоидм для отработки ДОЛГОЙ загрузки главного окна программы
+        <script>		
+			/* Глобальные переменные */
+			var globalSelectedPlatform; 	// Нужно для определения походящего типа платы
+			var globalPlatformList = {}; 	// Список всех поддерживаемых платформ
+			var globalDevMode = "blockly";	// Текущий режим разработки.
+											// "blockly"	- графический. Создание программы из блоков
+											// "code" 		- редактоирование кода. Блоки убраны
+			
+			
+			/**********************************************************/
+			/* Точка входа 											  */
+			/**********************************************************/	
             function init()
             {
-                // диалог выбора рабочей платформы
-                // не вфбрав платформу - нельзя работать
+                /* Выбор рабочей платформы */
                 var dialog = document.getElementById("dialog_selectProjectType");
 
                 // определяем событие на закрытие диалога платформы
@@ -77,22 +85,15 @@
                 // по сути разница только в элементе toolbox
                 HTML_Init(document.getElementById("dialog_selectProjectType"));
             }
+            /**********************************************************/
 
             function run_compile()
             {
                 var dialog = document.getElementById("compile_project");
-                //var PROCESS =
-                //var PROCESS_END =
-                // обнуляем диалоговое окно до состояния "по умолчанию"
-                //PROCESS.style="display: none;";
-                //PROCESS_END.style="display: true;";
-                // описываем элементы интерфейса - надо иначе никак
+
                 document.getElementById('table_process').style="display: none;";
                 document.getElementById('table_process_end').style="display: none;";
                 document.getElementById('compile_state').innerHTML = "Ожидание";
-
-                // аполняем поля списка портов
-                // comport_list
 
                 // открываем окно
                 dialog.showModal();
@@ -126,25 +127,56 @@
                 HTML_openProject();
             }
 
-            /* 	
-                Методы, дёграемые HTML менюшкой
-                (заменила меню, предоставляемое операционной системой)
-            */
-            
-            function menuProgramSettings() {
 
+
+            /* 	Методы, дёграемые HTML менюшкой  */   
+            function menuProgramSettings()
+            {
                 openOption();
             }
 
-            function menuBlockFactory() {
-
+            function menuBlockFactory()
+            {
                 window.open('./factory/factory.html', '_blank')
             }
 
-            function menuExitProgram() {
-
+            function menuExitProgram()
+            {
                 nw.App.quit();
-            } 
+            }
+            
+            /*	Переключение режима разработки	*/
+            var codeWindowPrevWidth;
+            var blocksWindowPrevWidth;
+            function switchDevMode()
+            {
+				var codeWindow = document.getElementById("code_sorce");
+				var blocksWindow = document.getElementById("blocks_panel");
+				
+				if(globalDevMode == "blockly")
+				{
+					globalDevMode = "code";
+					
+					codeWindowPrevWidth = codeWindow.style.width;
+					blocksWindowPrevWidth = blocksWindow.style.width;
+					
+					blocksWindow.style.width = '0px';
+					codeWindow.style.width = '100%';
+					//blocksWindow.style.display = "none";
+					
+				}
+				else if(globalDevMode == "code")
+				{
+					globalDevMode = "blockly";
+					
+					blocksWindow.style.width = blocksWindowPrevWidth;
+					//blocksWindow.style.display = "block";
+				}
+				else
+				{
+					console.log("Problem with mode switching");
+				}
+			}
 
         </script>
     </head>
@@ -247,6 +279,11 @@
                             <img src="img/toolbox_openfile.png">
                         </button>						
                     </li>
+                    <li class="right">
+                        <button class="myButton" onclick="switchDevMode()">
+                            <img src="img/Edit-icon.png">
+                        </button>						
+                    </li>
                 </ul>
             </div>
 
@@ -263,6 +300,8 @@
                 </div>
             </div>
         </div>
+        
+        <!----------------------------------------------------------------------------->
         <!-- ДАЛЕЕ СЛЕДУЮТ СЛУЖЕБНЫЕ ПОЛЯ, НЕ ОТОБРАЖАЮЩИЕСЯ НА РАБОЧЕМ СТОЛЕ СТУДИИ -->
 
         <dialog id="spmonitor">
@@ -274,6 +313,17 @@
             <script src="./serialport/connection.js"></script>
 
             <script src="./serialport/about.js"></script>
+            
+            <script>
+				
+				function buttonSpmonitorClose()
+				{
+					var dialog = document.getElementById("spmonitor");
+								
+					dialog.close(); 
+				}
+				
+            </script>
 
             <div id="top_panel">
                 <button type="button" class="myButton btn-connection">
@@ -283,6 +333,8 @@
                 <button class="myButton" id="stop-connection">Отключить</button>
 
                 <input type="checkbox" id="logautoscroll">Автоматическая прокрутка</input>
+                
+                <button class="myButton" id="sp-monitor-close" style="float: right;" onclick="buttonSpmonitorClose()">Закрыть</button>
             </div>
 
             <div id="connection" class="popup">
@@ -346,10 +398,13 @@
 
 
         </dialog>
+        
+        
+        <!-- Окно выбора платформы -->
 
         <dialog id="dialog_selectProjectType">
             <script>
-
+				
                 // выбрали кнопку созадния проекта под Ардуину
                 function arduinoProject()
                 {
@@ -372,42 +427,62 @@
                     var dialog = document.getElementById("dialog_selectProjectType");
                     
                     HTML_lastPlatform = 'toolbox_ArT';
-
                     HTML_initMainScreen('toolbox_ArT');
-
                     HTML_saveOptions();
                     
                     dialog.close('architechnica');
                 }
-
-                function continium()
+                
+                function buttonPlatofmSelectContinue()
                 {
-                    var dialog = document.getElementById("dialog_selectProjectType");
+					/*	Читаем значение из списка и выбираем
+						соответствующую платформу
+					*/
+					
+					var selectedPlatform = document.getElementById("listPlatformSelect").value;
+						
+					if(selectedPlatform == "Arduino")
+					{
+						arduinoProject();
+					}
+					else if(selectedPlatform == "Architechnica")
+					{
+						artProject();
+					}
+					else
+						console.log("index_gen.html: buttonPlatofmSelectContinue(): платформа не найдена!");
+				}
 
-                    HTML_initMainScreen(`${HTML_lastPlatform}`);
-
-                    dialog.close('continium');
-                }
             </script>
 
+			<h2 align="center">Добро пожаловать!</h3>
             <h3 align="center">Выберите платформу</h3>
+            
             <table>
                 <tr>
-                    <td>
-                        <button type="button" class="myButton" onclick="arduinoProject()">
+                    <td align="center">
+						
+						<!-- Список поддерживаемых платформ -->
+						
+						<select size="4" id="listPlatformSelect">
+						  <option style="font-size: x-large;" value="Arduino" selected="selected">Arduino</option>
+						  <option style="font-size: x-large;" value="Architechnica">Architechnica</option>
+						</select> 
+						
+                        
+                        <!--<button type="button" class="myButton" onclick="arduinoProject()">
                             <img src="img/Arduino.png" style="vertical-align: middle;width: 128px; height: 128px;">
                             Набор Arduino
                         </button>
                         <button type="button" class="myButton" onclick="artProject()">
                             <img src="img/dronblock.png" style="vertical-align: middle;width: 128px; height: 128px;">
                             Набор ДРОН-Блок
-                        </button>
+                        </button>-->
                     </td>
                 </tr>
-
                 <tr>
-                    <td>
-                        <button type="button" class="myButton" style="width: 100%;" onclick="continium()">
+					<td>
+						<button type="button" class="myButton" style="width: 100%;" onclick="buttonPlatofmSelectContinue()">
                             <img src="img/continueum.png" style="vertical-align: middle; height: 64px;">
                         </button>
                     </td>
