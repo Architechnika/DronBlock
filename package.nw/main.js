@@ -1,13 +1,5 @@
 /* основной файл методов взаимодействия HTML и системы
 
-ИЗМЕНЕНИЯ:
-
-2016-11-25:
-            - доработал выбор платформы. для этого добавил новую переменную HTML_lastPlatform
-              она служит для определения последней выбранной платформы
-              так же передеал метод инициализации рабочего поля - теперь она вынесена в отдельный медот
-              что позволяет управлять инициализацией поля. после инициализации рабочей страницы
-
 */
 
 'use strict'
@@ -115,11 +107,13 @@ var HTML_Init = function(dialog)
             Control.compileProject(port, BOARD, editor.getValue());
         };
 
+
+		// Составляем список портов
         HTML_getPortsList       = function(html_object, needRestorePort)
         {
             Control.getPortsList((ports, html_object) =>
                 {
-                    var select =  `<option value="com0">COM0</option>`;
+                    var select; // = `<option value="com0">COM0</option>`;
                     ports.forEach((port) =>
                         {
                             console.log('PORT NAME : ' + port.path);
@@ -739,7 +733,18 @@ function compileDialogRestorePort()
 {
 	if(OPTIONS.lastPort != 'none')
 	{
+		// Попытка восстановить последний порт
 		document.getElementById("comport_list").value = OPTIONS.lastPort;
+		
+		// Если к запомненному порту не подключена плата, то поле выбора
+		// порта будет пустым.
+		// Тогда просто обновляем список портов в надежде найти
+		// активный
+		if(document.getElementById("comport_list").value == '')
+		{
+			console.log("Restored port is not acitive! Refreshing");
+			serialport_refresh(false);
+		}
 	}
 	else
 		console.log("compileDialogRestorePort(): OPTIONS.lastPort is none");
