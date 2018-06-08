@@ -1,3 +1,0 @@
-.\1.IDE
-.\webpack.config.js
-.\4.KROP
